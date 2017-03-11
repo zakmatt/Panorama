@@ -76,3 +76,8 @@ if __name__ == '__main__':
     best_points = matching_corners[best_indices]
     draw_matches_after_ransac(image_1, image_2, best_points)
     ransac.find_best_homography()
+    homography = ransac.best_homography
+    inverse_homography = ransac.inverse_homography
+    panorama = Panorama(image_1, image_2, homography, inverse_homography)
+    panorama.calculate_size()
+    panorama.stitch()

@@ -134,3 +134,35 @@ def project(points, homography):
 
 def transform_image(image, transform, output_range):
     h, w, _ = image.shape
+    transform = np.array(transform)
+    
+    # determine pixel coordinates of an output image
+    w1 = output_range[0, 0]
+    h1 = output_range[0, 1]
+    w2 = output_range[1, 0]
+    h2 = output_range[1, 1]
+    
+    # set up the new window size
+    yy, xx = np.mgrid[h1:h2, w1:w2]
+    h = h2 - h1
+    w = w2 - w1
+    
+    # transform output pixel coordinates into input image coordinates
+    xywOut = np.vstack((xx.flatten(), yy.flatten()))
+    xywOut = homogeneous(xywOut)
+    xywIn = np.dot(np.linalg.inv(transform), xywOut)
+    xywIn = homogeneous(xywIn)
+    
+    # reshape input image coordinates
+    xxIn = xywIn[0, :].reshape((h, w))
+    yyIn = xywIn[1, :].reshape((h, w))
+    
+    print('dim: %d', image.ndim)
+    if image.ndim == 3:
+        output = np.zeros((h, w, image.shape[2]), dtype = image.dtype)
+        for dimension in range(image.shape[2]):
+            output[..., dimension] = interpolation.map_coordinates(
+                    image[..., dimension],
+                    [yyIn, xxIn]
+                  )
+    return output
